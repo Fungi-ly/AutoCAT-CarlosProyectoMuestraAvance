@@ -1,0 +1,4 @@
+Ángulo1: 45.0
+Ángulo2: 60.0
+Desarollo1: 100.0
+Desarollo2: 150.0

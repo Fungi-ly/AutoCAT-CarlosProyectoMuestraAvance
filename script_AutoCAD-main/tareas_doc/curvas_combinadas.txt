@@ -1,0 +1,2 @@
+Curva1: Radio 50.0, Longitud 100.0
+Curva2: Radio 75.0, Longitud 150.0
