@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Editor de Archivos CSV</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+
+    #archivoInput {
+      display: block;
+      margin: 20px auto;
+      padding: 10px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #editorCSV {
+      max-width: 800px;
+      margin: 0 auto;
+      overflow-x: auto;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+      border: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    td input {
+      width: 100%;
+      padding: 6px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    td input:focus {
+      border-color: #007BFF;
+      outline: none;
+    }
+
+    #guardarBoton {
+      display: block;
+      width: 200px;
+      margin: 30px auto;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #guardarBoton:hover {
+      background-color: #218838;
+    }
+
+    /* Estilo para mejorar la apariencia de los archivos CSV grandes */
+    table {
+      table-layout: fixed;
+    }
+
+    td {
+      word-wrap: break-word;
+      overflow: hidden;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Editor de Archivos CSV</h1>
+
+  <input type="file" id="archivoInput" accept=".csv">
+
+  <div id="editorCSV">
+    <table id="tablaDatos">
+      <thead>
+        <tr>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+
+  <button id="guardarBoton">Guardar Cambios</button>
+
+  <script>
+    const tabla = document.getElementById('tablaDatos').getElementsByTagName('tbody')[0];
+    const encabezadoTabla = document.getElementById('tablaDatos').getElementsByTagName('thead')[0].getElementsByTagName('tr')[0];
+    const archivoInput = document.getElementById('archivoInput');
+    const guardarBoton = document.getElementById('guardarBoton');
+    let datosCSV = [];
+
+    archivoInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const csvData = e.target.result;
+        cargarDatos(csvData);
+      }
+
+      reader.readAsText(file);
+    });
+
+    function cargarDatos(csvData) {
+      const lineas = csvData.split('\n');
+      const encabezado = lineas.shift().split(',');
+
+      // Limpiar encabezado
+      encabezadoTabla.innerHTML = "";
+      encabezado.forEach(columna => {
+        const th = document.createElement('th');
+        th.textContent = columna;
+        encabezadoTabla.appendChild(th);
+      });
+
+      // Limpiar el cuerpo de la tabla
+      tabla.innerHTML = "";
+      datosCSV = [];
+
+      lineas.forEach(linea => {
+        const valores = linea.split(',');
+        if (valores.length === encabezado.length) {
+          const fila = tabla.insertRow();
+          const filaData = [];
+          for (let i = 0; i < valores.length; i++) {
+            const celda = fila.insertCell();
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = valores[i];
+            celda.appendChild(input);
+            filaData.push(input.value);
+
+            // Escuchar cambios en los inputs
+            input.addEventListener('change', function () {
+              // Actualizar datos en tiempo real cuando el valor del input cambie
+              filaData[i] = input.value;
+            });
+          }
+          datosCSV.push(filaData);
+        }
+      });
+    }
+
+    guardarBoton.addEventListener('click', () => {
+      const csvModificado = generarCSV();
+      descargarArchivo(csvModificado, 'archivo_modificado.csv');
+    });
+
+    function generarCSV() {
+      const encabezado = Array.from(encabezadoTabla.cells).map(cell => cell.textContent).join(",");
+      let csv = encabezado + "\n";
+      datosCSV.forEach(fila => {
+        csv += fila.join(",") + "\n";
+      });
+      return csv;
+    }
+
+    function descargarArchivo(contenido, nombreArchivo) {
+      const blob = new Blob([contenido], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.download = nombreArchivo;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
+  </script>
+
+</body>
+
+</html>
